@@ -8,10 +8,10 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -31,7 +31,7 @@ public class Server {
 
    public void start() throws IOException {
       serverSocket = new ServerSocket(PORT);
-      System.out.println("Server started at port "+ PORT);
+      System.out.println(getDateAndTime() + "Server started at port "+ PORT);
       ExecutorService threadPool = Executors.newFixedThreadPool(64);
 
       while (true) {
@@ -44,7 +44,7 @@ public class Server {
             }
          });
       }
-   }//start
+   }
 
    private void handleRequest(Socket socket) throws IOException {
       while (true) {
@@ -53,7 +53,7 @@ public class Server {
                  final var out = new BufferedOutputStream(socket.getOutputStream());
          ) {
             final var requestLine = in.readLine();  // reading only request line
-            System.out.println("> requestLine: " + requestLine);
+            System.out.println("=========\n" + getDateAndTime() + "> requestLine: " + requestLine);
             final var parts = requestLine.split(" ");
 
             if (parts.length != 3) {
@@ -61,9 +61,9 @@ public class Server {
             }
 
             final var method = parts[0];
-            System.out.println("> method: " + method);
+            System.out.println(getDateAndTime() + "> method: " + method);
             final var path = parts[1];
-            System.out.println("> path: " + path);
+            System.out.println(getDateAndTime() + "> path: " + path);
             Request request = new Request(method,path);
 
             if (!validPaths.contains(path)) {
@@ -117,6 +117,14 @@ public class Server {
       if (method.equals("GET") && validPaths.contains(path)) {
          getHandlers.put(path, handler);
       }
+   }
+
+   private static String getDateAndTime() {
+      String datePattern = "[HH:mm:ss] ";
+      DateFormat d = new SimpleDateFormat(datePattern);
+      Date today = Calendar.getInstance().getTime();
+      String str = d.format(today);
+      return str;
    }
 
 }//Server
